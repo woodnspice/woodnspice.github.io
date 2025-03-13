@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLA Typing Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .teacher-mode {
+            display: none; /* Hidden by default */
+        }
+        
+        #paragraph-input {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        
+        .setup-test {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .student-mode {
+            display: block;
+        }
+        
+        .example-text {
+            background-color: #f7f9fc;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .current-word {
+            background-color: #d5f5e3;
+            border-radius: 3px;
+            padding: 2px 4px;
+        }
+        
+        .correct {
+            color: #27ae60;
+        }
+        
+        .incorrect {
+            color: #e74c3c;
+            text-decoration: underline wavy #e74c3c;
+        }
+        
+        #typing-input {
+            width: 100%;
+            font-size: 18px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+        }
+        
+        .metrics {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 10px 15px;
+            background-color: #eee;
+            border-radius: 4px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .submit-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .student-form {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f7f9fc;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .results-table th, .results-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .results-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .results-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .teacher-password-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+        
+        #teacher-password {
+            width: 100px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        #login-button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Hiding the URL hash */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <!-- Teacher password input (hidden in URL hash) -->
+    <div class="teacher-password-container">
+        <input type="password" id="teacher-password" placeholder="Teacher Password">
+        <button id="login-button">Login</button>
+    </div>
+    
+    <div class="container" id="main-container">
+        <!-- Teacher Mode -->
+        <div class="teacher-mode">
+            <h1>SOLA Typing Test - Teacher Dashboard</h1>
+            
+            <div class="test-setup">
+                <h2>Test Setup</h2>
+                <p>Enter the paragraph that students will type:</p>
+                <textarea id="paragraph-input" placeholder="Type or paste the test paragraph here...">Every girl has the power to create her own story. With courage and determination, she can achieve anything she dreams. Her voice matters, and her ideas can change the world. Each day is a new chance to learn, grow, and become stronger. Challenges make her resilient, and mistakes teach her valuable lessons. She believes in herself, supports other girls, and knows she can accomplish great things. She is unstoppable, confident, and ready to lead.
+The quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet. It is commonly used for typing practice and to test fonts. Typing speed is typically measured in words per minute (WPM). Professional typists can reach speeds of over 100 WPM.</textarea>
+                <div class="setup-test">
+                    <button id="update-test">Update Test</button>
+                    <button id="clear-text">Clear Text</button>
+                    <button id="export-results">Export Results (CSV)</button>
+                </div>
+            </div>
+            
+            <div class="student-results">
+                <h2>Student Results</h2>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>WPM</th>
+                            <th>Accuracy</th>
+                            <th>Time Taken</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body">
+                        <!-- Results will be filled in dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Student Mode -->
+        <div class="student-mode">
+            <h1>SOLA Typing Test</h1>
+            
+            <div class="student-form" id="student-info-form">
+                <h2>Student Information</h2>
+                <form id="student-form">
+                    <div class="form-group">
+                        <label for="student-name">Full Name:</label>
+                        <input type="text" id="student-name" required>
+                    </div>
+                    <button type="submit" id="start-test-btn">Start Test</button>
+                </form>
+            </div>
+            
+            <div id="typing-test-container" style="display: none;">
+                <h2>Typing Test</h2>
+                <p>Type the text below as quickly and accurately as you can:</p>
+                <div class="metrics">
+                    <div class="metric">
+                        <div>WPM</div>
+                        <div class="metric-value" id="wpm">0</div>
+                    </div>
+                    <div class="metric">
+                        <div>Accuracy</div>
+                        <div class="metric-value" id="accuracy">0%</div>
+                    </div>
+                    <div class="metric">
+                        <div>Time</div>
+                        <div class="metric-value" id="timer">0:00</div>
+                    </div>
+                </div>
+                
+                <div class="example-text" id="sample-text"></div>
+                
+                <input type="text" id="typing-input" placeholder="Start typing here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                
+                <div class="results" id="results">
+                    <h2>Test Complete!</h2>
+                    <div class="metrics">
+                        <div class="metric">
+                            <div>Final WPM</div>
+                            <div class="metric-value" id="final-wpm">0</div>
+                        </div>
+                        <div class="metric">
+                            <div>Final Accuracy</div>
+                            <div class="metric-value" id="final-accuracy">0%</div>
+                        </div>
+                        <div class="metric">
+                            <div>Time Taken</div>
+                            <div class="metric-value" id="final-time">0:00</div>
+                        </div>
+                    </div>
+                    
+                    <div class="submit-container">
+                        <button id="submit-results">Submit Results</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="thank-you-message" style="display: none; text-align: center; margin-top: 40px;">
+                <h2>Thank You!</h2>
+                <p>Your test results have been submitted successfully.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const paragraphInput = document.getElementById('paragraph-input');
+        const updateTestBtn = document.getElementById('update-test');
+        const clearTextBtn = document.getElementById('clear-text');
+        const exportResultsBtn = document.getElementById('export-results');
+        const mainContainer = document.getElementById('main-container');
+        const sampleText = document.getElementById('sample-text');
+        const typingInput = document.getElementById('typing-input');
+        const wpmElement = document.getElementById('wpm');
+        const accuracyElement = document.getElementById('accuracy');
+        const timerElement = document.getElementById('timer');
+        const resultsDiv = document.getElementById('results');
+        const finalWpm = document.getElementById('final-wpm');
+        const finalAccuracy = document.getElementById('final-accuracy');
+        const finalTime = document.getElementById('final-time');
+        const submitResultsBtn = document.getElementById('submit-results');
+        const loginButton = document.getElementById('login-button');
+        const teacherPassword = document.getElementById('teacher-password');
+        const studentForm = document.getElementById('student-form');
+        const studentNameInput = document.getElementById('student-name');
+        const startTestBtn = document.getElementById('start-test-btn');
+        const studentInfoForm = document.getElementById('student-info-form');
+        const typingTestContainer = document.getElementById('typing-test-container');
+        const thankYouMessage = document.getElementById('thank-you-message');
+        const resultsTableBody = document.getElementById('results-table-body');
+
+        // Constants
+        const TEACHER_PASSWORD = "sola123"; // Simple password for demo purposes
+        const LOCAL_STORAGE_KEY = "solaTypingResults";
+
+        // State variables
+        let testActive = false;
+        let startTime;
+        let timerInterval;
+        let currentWordIndex = 0;
+        let correctWords = 0;
+        let totalTypedChars = 0;
+        let correctTypedChars = 0;
+        let words = [];
+        let currentStudentName = "";
+        let teacherMode = false;
+        let textContent = ""; // Store the full text content
+        let currentPosition = 0; // Current position in the text
+
+        // Predefined text for the typing test
+        const defaultText = "Every girl has the power to create her own story. With courage and determination, she can achieve anything she dreams. Her voice matters, and her ideas can change the world. Each day is a new chance to learn, grow, and become stronger. Challenges make her resilient, and mistakes teach her valuable lessons. She believes in herself, supports other girls, and knows she can accomplish great things. She is unstoppable, confident, and ready to lead.\nThe quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet. It is commonly used for typing practice and to test fonts. Typing speed is typically measured in words per minute (WPM). Professional typists can reach speeds of over 100 WPM.";
+
+        // Event listeners
+        if (updateTestBtn) updateTestBtn.addEventListener('click', updateTest);
+        if (clearTextBtn) clearTextBtn.addEventListener('click', clearText);
+        if (exportResultsBtn) exportResultsBtn.addEventListener('click', exportResults);
+        if (typingInput) typingInput.addEventListener('input', checkInput);
+        if (loginButton) loginButton.addEventListener('click', checkTeacherPassword);
+        if (submitResultsBtn) submitResultsBtn.addEventListener('click', submitResults);
+        if (studentForm) studentForm.addEventListener('submit', handleStudentFormSubmit);
+
+        // Check URL hash for teacher mode
+        checkUrlForTeacherMode();
+        
+        // Initialize teacher or student mode
+        initializeMode();
+
+        // Functions
+        function initializeMode() {
+            if (teacherMode) {
+                document.querySelector('.teacher-mode').style.display = 'block';
+                document.querySelector('.student-mode').style.display = 'none';
+                loadSavedResults();
+            } else {
+                document.querySelector('.teacher-mode').style.display = 'none';
+                document.querySelector('.student-mode').style.display = 'block';
+                
+                // Load the test text from localStorage if available
+                const savedText = localStorage.getItem('solaTypingText') || defaultText;
+                textContent = savedText;
+                words = savedText.split(/\s+/);
+            }
+        }
+
+        function checkUrlForTeacherMode() {
+            // Check if URL hash contains the teacher password
+            if (window.location.hash === '#' + TEACHER_PASSWORD) {
+                teacherMode = true;
+                // Hide the teacher password input
+                document.querySelector('.teacher-password-container').style.display = 'none';
+            }
+        }
+
+        function checkTeacherPassword() {
+            if (teacherPassword.value === TEACHER_PASSWORD) {
+                // Set URL hash to teacher password
+                window.location.hash = TEACHER_PASSWORD;
+                teacherMode = true;
+                initializeMode();
+            } else {
+                alert("Incorrect password");
+            }
+        }
+
+        function handleStudentFormSubmit(e) {
+            e.preventDefault();
+            
+            currentStudentName = studentNameInput.value.trim();
+            
+            if (!currentStudentName) {
+                alert("Please enter your name");
+                return;
+            }
+            
+            // Check if student has already taken the test
+            const savedResults = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            const hasAlreadyTaken = savedResults.some(result => 
+                result.studentName === currentStudentName
+            );
+            
+            if (hasAlreadyTaken) {
+                alert("You have already completed this test. Please contact your teacher if you need to retake it.");
+                return;
+            }
+            
+            // Hide form, show test
+            studentInfoForm.style.display = 'none';
+            typingTestContainer.style.display = 'block';
+            
+            // Initialize test
+            displayText();
+            typingInput.focus();
+        }
+
+        function updateTest() {
+            const text = paragraphInput.value.trim();
+            if (text.length === 0) {
+                alert("Please enter a paragraph for the test.");
+                return;
+            }
+            
+            // Save to localStorage for students
+            localStorage.setItem('solaTypingText', text);
+            alert("Test has been updated for all students!");
+        }
+
+        function displayText() {
+            sampleText.innerHTML = '';
+            
+            // Split the text into characters
+            for (let i = 0; i < textContent.length; i++) {
+                const charSpan = document.createElement('span');
+                charSpan.innerText = textContent[i];
+                charSpan.id = `char-${i}`;
+                
+                if (i === currentPosition) {
+                    charSpan.classList.add('current-word'); // Reusing the class for the current position
+                }
+                
+                sampleText.appendChild(charSpan);
+            }
+            
+            // Scroll to the current position
+            const currentCharElement = document.querySelector('.current-word');
+            if (currentCharElement) {
+                currentCharElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function checkInput(e) {
+            if (!testActive) {
+                // Start the test on first keystroke
+                if (!timerInterval) {
+                    startTest();
+                }
+            }
+            
+            const typedValue = typingInput.value;
+            
+            if (typedValue.length > 0) {
+                const lastChar = typedValue.charAt(typedValue.length - 1);
+                
+                // Check if the typed character matches the current character in the text
+                if (currentPosition < textContent.length) {
+                    const expectedChar = textContent.charAt(currentPosition);
+                    
+                    const charElement = document.getElementById(`char-${currentPosition}`);
+                    
+                    if (lastChar === expectedChar) {
+                        // Correct character
+                        charElement.classList.add('correct');
+                        correctTypedChars++;
+                    } else {
+                        // Incorrect character
+                        charElement.classList.add('incorrect');
+                    }
+                    
+                    // Move to next character
+                    currentPosition++;
+                    totalTypedChars++;
+                    
+                    // Update accuracy
+                    updateAccuracy();
+                    
+                    // Update WPM
+                    updateWPM();
+                    
+                    // Display next character as current
+                    if (currentPosition < textContent.length) {
+                        // Reset highlighting
+                        document.querySelectorAll('.current-word').forEach(el => {
+                            el.classList.remove('current-word');
+                        });
+                        
+                        // Highlight new current character
+                        const nextCharElement = document.getElementById(`char-${currentPosition}`);
+                        if (nextCharElement) {
+                            nextCharElement.classList.add('current-word');
+                            nextCharElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else {
+                        // Test complete
+                        endTest();
+                    }
+                }
+                
+                // Clear input field to prepare for next character
+                typingInput.value = '';
+            }
+        }
+        
+        function startTest() {
+            testActive = true;
+            
+            // Start timer
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update WPM
+            updateWPM();
+        }
+
+        function updateWPM() {
+            if (!startTime) return;
+            
+            const currentTime = new Date();
+            const elapsedMinutes = (currentTime - startTime) / 60000; // Convert to minutes
+            
+            // Calculate WPM (standard: 5 characters = 1 word)
+            const standardWords = totalTypedChars / 5;
+            
+            // Avoid division by zero
+            const wpm = elapsedMinutes > 0 ? Math.round(standardWords / elapsedMinutes) : 0;
+            wpmElement.textContent = wpm;
+        }
+
+        function updateAccuracy() {
+            if (totalTypedChars === 0) {
+                accuracyElement.textContent = '100%';
+                return;
+            }
+            
+            const accuracy = Math.round((correctTypedChars / totalTypedChars) * 100);
+            accuracyElement.textContent = `${accuracy}%`;
+        }
+
+        function endTest() {
+            testActive = false;
+            clearInterval(timerInterval);
+            
+            // Display results
+            resultsDiv.style.display = 'block';
+            finalWpm.textContent = wpmElement.textContent;
+            finalAccuracy.textContent = accuracyElement.textContent;
+            finalTime.textContent = timerElement.textContent;
+            
+            // Disable input
+            typingInput.disabled = true;
+        }
+
+        function submitResults() {
+            // Get test results
+            const wpm = parseInt(finalWpm.textContent);
+            const accuracy = finalAccuracy.textContent;
+            const timeTaken = finalTime.textContent;
+            const date = new Date().toLocaleDateString();
+            
+            // Create result object
+            const result = {
+                studentName: currentStudentName,
+                wpm: wpm,
+                accuracy: accuracy,
+                timeTaken: timeTaken,
+                date: date,
+                timestamp: Date.now()
+            };
+            
+            // Save to localStorage
+            const savedResults = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            savedResults.push(result);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedResults));
+            
+            // Show thank you message
+            typingTestContainer.style.display = 'none';
+            thankYouMessage.style.display = 'block';
+        }
+
+        function loadSavedResults() {
+            const savedResults = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            
+            // Clear the table
+            resultsTableBody.innerHTML = '';
+            
+            // Sort by timestamp (newest first)
+            savedResults.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Add results to table
+            savedResults.forEach(result => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${result.studentName}</td>
+                    <td>${result.wpm}</td>
+                    <td>${result.accuracy}</td>
+                    <td>${result.timeTaken}</td>
+                    <td>${result.date}</td>
+                `;
+                
+                resultsTableBody.appendChild(row);
+            });
+        }
+
+        function exportResults() {
+            const savedResults = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            
+            if (savedResults.length === 0) {
+                alert("No results to export");
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = "Student Name,WPM,Accuracy,Time Taken,Date\n";
+            
+            savedResults.forEach(result => {
+                const row = [
+                    `"${result.studentName}"`,
+                    result.wpm,
+                    result.accuracy,
+                    result.timeTaken,
+                    result.date
+                ].join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'typing_test_results.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearText() {
+            paragraphInput.value = '';
+            paragraphInput.focus();
+        }
+    </script>
+</body>
+</html>
